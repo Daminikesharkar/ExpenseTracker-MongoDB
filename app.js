@@ -46,8 +46,7 @@ app.use(mainRoutes);
 // app.use(premiumRoutes);
 // app.use(resetPasswordRoutes);
 
-
-mongoose.connect('mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.0epflzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.0epflzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`)
     .then(()=>{
         app.listen(process.env.Port || 3000,()=>{
             console.log(`server is live on port ${process.env.Port}`);
