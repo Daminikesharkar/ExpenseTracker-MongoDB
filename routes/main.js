@@ -13,8 +13,8 @@ router.post('/login',mainController.login);
 
 //Expense routes
 router.get('/userExpenses',expenseController.showExpensePage)
-// router.post('/addExpense',authentication.authenticate,expenseController.addExpense);
-// router.get('/getExpenses',authentication.authenticate,expenseController.getExpense);
+router.post('/addExpense',authentication.authenticate,expenseController.addExpense);
+router.get('/getExpenses',authentication.authenticate,expenseController.getExpense);
 // router.get('/deleteExpense/:id',authentication.authenticate,expenseController.deleteExpense);
 
 module.exports = router;
