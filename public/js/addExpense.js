@@ -53,7 +53,7 @@ table.addEventListener('click',(e)=>{
         const row = e.target.parentElement.parentElement;
         const userDataString = e.target.getAttribute("data-user-data");
         const userData = JSON.parse(userDataString);
-        deleteExpense(userData.id,row);
+        deleteExpense(userData._id);
         row.remove(); 
     }
 })

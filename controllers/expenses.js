@@ -44,7 +44,8 @@ exports.addExpense = async (req, res) => {
         if (createdExpense) {
 
             const total_expenses = Number(req.user.totalExpense) + Number(amount);
-            await User.updateOne({ totalExpense: total_expenses }, { _id: req.user._id });
+            await User.findOneAndUpdate({_id:req.user._id},{totalExpense:total_expenses},{new : true});
+            // await User.updateOne({ totalExpense: total_expenses }, { _id: req.user._id });
 
             return res.status(200).json({
                 message: 'Expense added successfully',
@@ -58,22 +59,16 @@ exports.addExpense = async (req, res) => {
     }
 };
 
-// exports.deleteExpense = async (req, res) => {
-//     const transaction = await sequelize.transaction();
+exports.deleteExpense = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const expense = await Expense.findByIdAndDelete(id);
 
-//     try {
-//         const id = req.params.id;
-//         const expense = await Expense.findByPk(id);
+        const newTotalExpense = Number(req.user.totalExpense) - Number(expense.amount);
+        await User.update({ totalExpense: newTotalExpense }, { id: req.user._id });
 
-//         const newTotalExpense = Number(req.user.totalExpense) - Number(expense.amount);
-//         await Users.update({ totalExpense: newTotalExpense }, { where: { id: req.user.id }, transaction });
-
-//         await expense.destroy({ transaction });
-//         await transaction.commit();
-
-//         return res.json({ message: 'Expense deleted successfully', totalExpense: newTotalExpense });
-//     } catch (error) {
-//         await transaction.rollback();
-//         res.status(500).json({ error: 'Error deleting expense' });
-//     }
-// };
+        return res.json({ message: 'Expense deleted successfully', totalExpense: newTotalExpense });
+    } catch (error) {
+        res.status(500).json({ error: 'Error deleting expense' });
+    }
+};

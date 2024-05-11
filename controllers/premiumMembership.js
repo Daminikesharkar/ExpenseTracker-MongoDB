@@ -2,6 +2,7 @@ const Razorpay = require('razorpay');
 require('dotenv').config();
 
 const Order = require('../models/order');
+const User = require('../models/user');
 const jwt = require('jsonwebtoken')
 const key_id = process.env.RAZORPAY_KEY_ID;
 const key_secret = process.env.RAZORPAY_KEY_SECRET;
@@ -27,7 +28,8 @@ exports.purchasePremiumMembership = async(req,res)=>{
             if(err){
                 return res.status(500).json({ error: 'Internal Server Error' });  
             }
-            req.user.createOrder({
+            Order.create({
+                userId:req.user._id,
                 orderId: order.id,
                 status: "PENDING",
             }).then(()=>{
@@ -45,10 +47,9 @@ exports.purchasePremiumMembership = async(req,res)=>{
 exports.updateTransaction = async(req,res) =>{
     try {
         const { order_id, payment_id } = req.body;
- 
-        const order = await Order.findOne({where:{orderId:order_id}})
-        const promise1 = order.update({paymentId:payment_id,status:"SUCCESSFUL"})
-        const promise2 = req.user.update({ispremiumuser:true})
+
+        const promise1 = Order.findOneAndUpdate({ orderId: order_id },{paymentId:payment_id,status:"SUCCESSFUL"},{new:true})
+        const promise2 = User.findOneAndUpdate({ _id: req.user._id },{ ispremiumuser: true },{ new: true })
 
         Promise.all([
             promise1,
