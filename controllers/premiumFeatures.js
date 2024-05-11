@@ -1,8 +1,6 @@
-const AWS = require('aws-sdk');
-
-const Users = require('../models/user');
+const User = require('../models/user');
 const Expense = require('../models/expense');
-const downloads = require('../models/download');
+const Downloads = require('../models/download');
 
 const awsservice = require('../services/awsservice');
 
@@ -44,19 +42,15 @@ GROUP BY users.id ORDER BY total_expenses desc; */
 // }
 exports.showLeaderboard = async (req, res) => {
     try {
-        const users = await Users.findAll({
-            attributes: [
-                'id',
-                'username',
-                'totalExpense'
-            ],
-            order: [['totalExpense', 'DESC']]
-        });
+        const users = await User.find({})
+        .select('id username totalExpense')
+        .sort({ totalExpense: -1 })
+        .limit(10);
 
         const userData = users.map(user => ({
-            id: user.id,
+            id: user._id,
             username: user.username,
-            total_expenses: user.get('totalExpense')
+            total_expenses: user.totalExpense
         }));
 
         return res.json({ userData: userData });
@@ -67,18 +61,16 @@ exports.showLeaderboard = async (req, res) => {
 
 exports.downloadFile = async(req,res)=>{
   try {
-      const products = await Expense.findAll({where: {
-          userId: req.user.id,
-      }});
+      const products = await Expense.find({userId: req.user._id,});
            
       const stringifiedProducts = JSON.stringify(products);
-      const filename = `Products${req.user.id}/${new Date()}.txt`;
+      const filename = `Products${req.user._id}/${new Date()}.txt`;
 
       const fileurl = await awsservice.uploadToS3(stringifiedProducts,filename);
 
-      const newUrl = await downloads.create({
+      const newUrl = await Downloads.create({
           downloadUrl:fileurl,
-          userId:req.user.id
+          userId:req.user._id
       })
 
       return res.status(200).json({
@@ -92,7 +84,7 @@ exports.downloadFile = async(req,res)=>{
 
 exports.downloadedHistory = async (req,res)=>{
   try {
-      const history = await downloads.findAll({where:{userId:req.user.id}});
+      const history = await Downloads.find({userId:req.user._id});
 
       return res.status(200).json({
           history: history
