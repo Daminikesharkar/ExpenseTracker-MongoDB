@@ -13,7 +13,7 @@ exports.getEmailToSendResetLink = async (req,res)=>{
 
     try {
         const {email} = req.body;
-         const user = await User.findOne({where: {email: email}});
+        const user = await User.findOne({email: email});
 
         if(user){
             const id = uuid.v4();
@@ -21,15 +21,15 @@ exports.getEmailToSendResetLink = async (req,res)=>{
             await forgetPassword.create({
                 id:id,
                 active:true,
-                userId:user.id
+                userId:user._id
             })
 
             const transporter = nodemailer.createTransport({
                 host: 'smtp.ethereal.email',
                 port: 587,
                 auth: {
-                    user: 'jaiden.hartmann@ethereal.email',
-                    pass: 'EDYvasTufBVuyVs6EV'
+                    user: 'brendan.gaylord31@ethereal.email',
+                    pass: '4KU7hnqpf2HX3g18Xh'
                 }
             });
     
@@ -57,9 +57,11 @@ exports.resetPassword = async (req,res)=>{
     try {
         const id =  req.params.id;
         
-        const forgetPassRequest = await forgetPassword.findOne({where:{id:id}});
+        const forgetPassRequest = await forgetPassword.findById({id:id});
         if(forgetPassRequest){
-            await forgetPassRequest.update({ active: false});
+            // await forgetPassRequest.update({ active: false});
+            forgetPassRequest.active = false;
+            await forgetPassRequest.save();
             res.status(200).send(`<html>
                                     <script>
                                         function formsubmitted(e){
@@ -87,15 +89,17 @@ exports.updatePassword = async (req,res)=>{
         const {newpassword} = req.query;
         const id = req.params.id;
 
-        const resetPassReq = await forgetPassword.findOne({where:{id:id}});
+        const resetPassReq = await forgetPassword.findById({id:id});
         if(resetPassReq){
-            const user = await User.findOne({where:{id:resetPassReq.userId}});
+            const user = await User.findById({id:resetPassReq.userId});
 
             if(user){
                 const saltrounds = 10;
                 const hashedPassword = await bcrypt.hash(newpassword,saltrounds);
 
-                await user.update({password:hashedPassword})
+                // await user.update({password:hashedPassword})
+                user.password = hashedPassword;
+                await user.save();
             }
             
             return res.status(200).json({
